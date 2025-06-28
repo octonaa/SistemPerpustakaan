@@ -36,6 +36,9 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
             <p className="mt-2 text-sm text-gray-600">
               Sistem Manajemen Perpustakaan
             </p>
+            <p className="mt-4 text-sm text-red-600">
+              Silakan login untuk mengakses sistem
+            </p>
             <div className="mt-8">
               <a
                 href="/api/login"

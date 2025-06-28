@@ -48,13 +48,10 @@ export default function Books() {
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
+          title: "Tidak terotorisasi",
+          description: "Sesi Anda telah berakhir. Silakan login kembali.",
           variant: "destructive",
         });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
         return;
       }
       toast({
