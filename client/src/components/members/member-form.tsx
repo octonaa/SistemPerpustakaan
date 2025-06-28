@@ -8,14 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { isUnauthorizedError } from "@/lib/auth-utils";
-import { insertMemberSchema, type Member, type InsertMember } from "@shared/schema";
-
-interface MemberFormProps {
-  member?: Member | null;
-  onSuccess: () => void;
-  onCancel: () => void;
-}
 
 export default function MemberForm({ member, onSuccess, onCancel }: MemberFormProps) {
   const { toast } = useToast();
@@ -52,14 +44,6 @@ export default function MemberForm({ member, onSuccess, onCancel }: MemberFormPr
       onSuccess();
     },
     onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Tidak terotorisasi",
-          description: "Sesi Anda telah berakhir. Silakan login kembali.",
-          variant: "destructive",
-        });
-        return;
-      }
       toast({
         title: "Error",
         description: member ? "Gagal memperbarui anggota" : "Gagal menambahkan anggota",

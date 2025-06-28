@@ -8,14 +8,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Plus, Search, Edit, Trash2, Filter } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { isUnauthorizedError } from "@/lib/auth-utils";
-import MainLayout from "@/components/layout/main-layout";
-import BookForm from "@/components/books/book-form";
-import type { Book } from "@shared/schema";
-
-export default function Books() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showForm, setShowForm] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
   
   const { toast } = useToast();
@@ -46,14 +38,6 @@ export default function Books() {
       });
     },
     onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Tidak terotorisasi",
-          description: "Sesi Anda telah berakhir. Silakan login kembali.",
-          variant: "destructive",
-        });
-        return;
-      }
       toast({
         title: "Error",
         description: "Gagal menghapus buku",

@@ -6,14 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { isUnauthorizedError } from "@/lib/auth-utils";
-import { insertBookSchema, type Book, type InsertBook } from "@shared/schema";
-
-interface BookFormProps {
-  book?: Book | null;
-  onSuccess: () => void;
-  onCancel: () => void;
-}
 
 export default function BookForm({ book, onSuccess, onCancel }: BookFormProps) {
   const { toast } = useToast();
@@ -50,14 +42,6 @@ export default function BookForm({ book, onSuccess, onCancel }: BookFormProps) {
       onSuccess();
     },
     onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Tidak terotorisasi",
-          description: "Sesi Anda telah berakhir. Silakan login kembali.",
-          variant: "destructive",
-        });
-        return;
-      }
       toast({
         title: "Error",
         description: book ? "Gagal memperbarui buku" : "Gagal menambahkan buku",

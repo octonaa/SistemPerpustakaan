@@ -10,14 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Search, Eye, Check, Trash2, Filter } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { isUnauthorizedError } from "@/lib/auth-utils";
-import MainLayout from "@/components/layout/main-layout";
-import LoanForm from "@/components/loans/loan-form";
-import type { LoanWithRelations } from "@shared/schema";
-
-export default function Loans() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
   
   const { toast } = useToast();
@@ -40,14 +32,6 @@ export default function Loans() {
       });
     },
     onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Tidak terotorisasi",
-          description: "Sesi Anda telah berakhir. Silakan login kembali.",
-          variant: "destructive",
-        });
-        return;
-      }
       toast({
         title: "Error",
         description: "Gagal mengembalikan buku",
@@ -68,14 +52,6 @@ export default function Loans() {
       });
     },
     onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Tidak terotorisasi",
-          description: "Sesi Anda telah berakhir. Silakan login kembali.",
-          variant: "destructive",
-        });
-        return;
-      }
       toast({
         title: "Error",
         description: "Gagal menghapus data peminjaman",

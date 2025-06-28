@@ -6,14 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { CalendarDays, DollarSign, Book, Users, Download, Trash2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { isUnauthorizedError } from "@/lib/auth-utils";
-import MainLayout from "@/components/layout/main-layout";
-import type { Report } from "@shared/schema";
-
-export default function Reports() {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ["/api/reports"],
   });
@@ -30,14 +22,6 @@ export default function Reports() {
       });
     },
     onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Tidak terotorisasi",
-          description: "Sesi Anda telah berakhir. Silakan login kembali.",
-          variant: "destructive",
-        });
-        return;
-      }
       toast({
         title: "Error",
         description: "Gagal membuat laporan",
@@ -58,14 +42,6 @@ export default function Reports() {
       });
     },
     onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Tidak terotorisasi",
-          description: "Sesi Anda telah berakhir. Silakan login kembali.",
-          variant: "destructive",
-        });
-        return;
-      }
       toast({
         title: "Error",
         description: "Gagal menghapus laporan",

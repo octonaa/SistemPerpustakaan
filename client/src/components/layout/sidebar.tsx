@@ -5,7 +5,6 @@ import {
   Book, 
   ArrowRightLeft, 
   ChartBar,
-  LogOut,
   BookOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,12 +19,6 @@ const navigation = [
 
 export default function Sidebar() {
   const [location] = useLocation();
-
-  const handleLogout = () => {
-    if (confirm("Apakah Anda yakin ingin keluar?")) {
-      window.location.href = "/api/logout";
-    }
-  };
 
   return (
     <div className="fixed inset-y-0 z-50 flex w-60 flex-col">
@@ -58,17 +51,6 @@ export default function Sidebar() {
               );
             })}
           </ul>
-          
-          <div className="mt-6 mb-4">
-            <Button
-              variant="ghost"
-              onClick={handleLogout}
-              className="w-full justify-start gap-x-3 text-gray-700 hover:text-red-600 hover:bg-red-50"
-            >
-              <LogOut className="h-5 w-5" />
-              Log Out
-            </Button>
-          </div>
         </nav>
       </div>
     </div>

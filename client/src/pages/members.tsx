@@ -8,7 +8,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Plus, Search, Edit, Trash2, Eye, Filter } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { isUnauthorizedError } from "@/lib/auth-utils";
 import MainLayout from "@/components/layout/main-layout";
 import MemberForm from "@/components/members/member-form";
 import type { Member } from "@shared/schema";
@@ -46,14 +45,6 @@ export default function Members() {
       });
     },
     onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Tidak terotorisasi",
-          description: "Sesi Anda telah berakhir. Silakan login kembali.",
-          variant: "destructive",
-        });
-        return;
-      }
       toast({
         title: "Error",
         description: "Gagal menghapus anggota",
@@ -73,6 +64,12 @@ export default function Members() {
     }
   };
 
+  const handleFormSuccess = () => {
+    setShowForm(false);
+    setEditingMember(null);
+    queryClient.invalidateQueries({ queryKey: ["/api/members"] });
+  };
+
   const handleFormClose = () => {
     setShowForm(false);
     setEditingMember(null);
@@ -86,124 +83,103 @@ export default function Members() {
           <p className="mt-2 text-sm text-gray-700">Kelola data anggota perpustakaan</p>
         </div>
         <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-          <Button onClick={() => setShowForm(true)} className="bg-library-blue hover:bg-library-blue/90">
-            <Plus className="h-4 w-4 mr-2" />
+          <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
             Tambah Anggota
           </Button>
         </div>
       </div>
 
-      {/* Search and Filter */}
-      <Card className="shadow-sm border border-gray-200 mb-6">
-        <CardContent className="px-6 py-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                type="text"
-                placeholder="Cari berdasarkan nama, nomor anggota, atau alamat..."
+                placeholder="Cari anggota..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
             </div>
-            <Button variant="outline">
+            <Button variant="outline" size="sm">
               <Filter className="h-4 w-4 mr-2" />
               Filter
             </Button>
           </div>
+
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-library-blue"></div>
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>No</TableHead>
+                    <TableHead>Nama</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Telepon</TableHead>
+                    <TableHead>Kelas</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Aksi</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {members.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                        {searchQuery ? "Tidak ada anggota yang ditemukan" : "Belum ada data anggota"}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    members.map((member: Member, index: number) => (
+                      <TableRow key={member.id}>
+                        <TableCell className="font-medium">{index + 1}</TableCell>
+                        <TableCell>{member.name}</TableCell>
+                        <TableCell>{member.email}</TableCell>
+                        <TableCell>{member.phone}</TableCell>
+                        <TableCell>{member.class}</TableCell>
+                        <TableCell>
+                          <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                            Aktif
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button variant="outline" size="sm">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleEdit(member)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleDelete(member.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Members Table */}
-      <Card className="shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Daftar Anggota</h3>
-        </div>
-        <div className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>No</TableHead>
-                  <TableHead>Nomor Anggota</TableHead>
-                  <TableHead>Nomor Identitas</TableHead>
-                  <TableHead>Jenis Identitas</TableHead>
-                  <TableHead>Nama Lengkap</TableHead>
-                  <TableHead>Tanggal Lahir</TableHead>
-                  <TableHead>Kelas</TableHead>
-                  <TableHead>Alamat</TableHead>
-                  <TableHead>Nomor Telepon</TableHead>
-                  <TableHead>Tanggal Pendaftaran</TableHead>
-                  <TableHead>Opsi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={11} className="text-center py-8">
-                      Loading...
-                    </TableCell>
-                  </TableRow>
-                ) : members.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={11} className="text-center py-8 text-gray-500">
-                      Tidak ada data anggota
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  members.map((member: Member, index: number) => (
-                    <TableRow key={member.id} className="hover:bg-gray-50">
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell className="font-medium">{member.memberNumber}</TableCell>
-                      <TableCell>{member.identityNumber}</TableCell>
-                      <TableCell>{member.identityType}</TableCell>
-                      <TableCell>{member.fullName}</TableCell>
-                      <TableCell>{member.birthDate ? new Date(member.birthDate).toLocaleDateString('id-ID') : '-'}</TableCell>
-                      <TableCell>{member.class || '-'}</TableCell>
-                      <TableCell className="max-w-xs truncate">{member.address || '-'}</TableCell>
-                      <TableCell>{member.phone || '-'}</TableCell>
-                      <TableCell>{new Date(member.registrationDate!).toLocaleDateString('id-ID')}</TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEdit(member)}
-                            className="text-library-blue hover:text-library-blue/80"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(member.id)}
-                            className="text-red-600 hover:text-red-700"
-                            disabled={deleteMutation.isPending}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-accent-purple hover:text-accent-purple/80"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-      </Card>
-
-      {/* Member Form Dialog */}
-      <Dialog open={showForm} onOpenChange={handleFormClose}>
-        <DialogContent className="sm:max-w-lg">
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>
               {editingMember ? "Edit Anggota" : "Tambah Anggota Baru"}
@@ -211,7 +187,7 @@ export default function Members() {
           </DialogHeader>
           <MemberForm
             member={editingMember}
-            onSuccess={handleFormClose}
+            onSuccess={handleFormSuccess}
             onCancel={handleFormClose}
           />
         </DialogContent>

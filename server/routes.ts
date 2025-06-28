@@ -2,26 +2,22 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertMemberSchema, insertBookSchema, insertLoanSchema, insertReportSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
-
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
+  // Dummy auth - always return a mock admin user
+  app.get('/api/auth/user', async (req, res) => {
+    const dummyUser = {
+      id: "admin",
+      email: "admin@perpustakaan-atina.com",
+      firstName: "Admin",
+      lastName: "Perpustakaan",
+      profileImageUrl: null
+    };
+    res.json(dummyUser);
   });
   // Members routes
-  app.get("/api/members", isAuthenticated, async (req, res) => {
+  app.get("/api/members", async (req, res) => {
     try {
       const { search } = req.query;
       let members;
@@ -39,7 +35,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/members/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/members/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const member = await storage.getMember(id);
@@ -55,7 +51,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/members", isAuthenticated, async (req, res) => {
+  app.post("/api/members", async (req, res) => {
     try {
       const memberData = insertMemberSchema.parse(req.body);
       const member = await storage.createMember(memberData);
@@ -69,7 +65,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/members/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/members/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const memberData = insertMemberSchema.partial().parse(req.body);
@@ -84,7 +80,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/members/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/members/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteMember(id);
@@ -96,7 +92,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Books routes
-  app.get("/api/books", isAuthenticated, async (req, res) => {
+  app.get("/api/books", async (req, res) => {
     try {
       const { search } = req.query;
       let books;
