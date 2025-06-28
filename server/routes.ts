@@ -55,7 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/members", async (req, res) => {
+  app.post("/api/members", isAuthenticated, async (req, res) => {
     try {
       const memberData = insertMemberSchema.parse(req.body);
       const member = await storage.createMember(memberData);
@@ -69,7 +69,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/members/:id", async (req, res) => {
+  app.put("/api/members/:id", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const memberData = insertMemberSchema.partial().parse(req.body);
@@ -84,7 +84,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/members/:id", async (req, res) => {
+  app.delete("/api/members/:id", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteMember(id);
@@ -96,7 +96,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Books routes
-  app.get("/api/books", async (req, res) => {
+  app.get("/api/books", isAuthenticated, async (req, res) => {
     try {
       const { search } = req.query;
       let books;
